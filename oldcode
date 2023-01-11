@@ -1,0 +1,41 @@
+def handler(pd: "pipedream"):
+  # Reference data from previous steps
+  print(pd.steps["trigger"]["context"]["id"])
+  print(pd.steps["trigger"]["event"])
+  data_store = pd.inputs["data_store"]
+  if "scores" in data_store:
+    scores = data_store["scores"]
+  else: 
+    scores = {
+      "Joe": {"today": None, "overall": 0},
+      "Sara": {"today": None, "overall": 0},
+      "Aaron": {"today": None, "overall": 0}, 
+      "Sara": {"today": None, "overall": 0}, 
+      "James": {"today": None, "overall": 0}, 
+      "Faith": {"today": None, "overall": 0}, 
+      "hole": 14, 
+      "Round": 7, 
+      "game": None}
+  from_address = ""
+  sender = ""
+  summary = ""
+  score_map = {"1/6": -3, "2/6": -2, "3/6": -1, "4/6": 0, "5/6": 1, "6/6": 2}
+  player = ""
+  if pd.steps["trigger"]["event"]["body"]:
+    if "fromAddress" in pd.steps["trigger"]["event"]["body"]:
+      from_Address = pd.steps["trigger"]["event"]["body"]["fromAddress"]
+    if "sender" in pd.steps["trigger"]["event"]["body"]:
+      sender = pd.steps["trigger"]["event"]["body"]["sender"]
+    if "summary" in pd.steps["trigger"]["event"]["body"]:
+      summary = pd.steps["trigger"]["event"]["body"]["summary"]
+      for line in summary.splitlines():
+        if line in scores.keys():
+          player = line
+        if "Wordle" in line:
+          wordle_score = line.split(" ")
+      scores[player] = {"today": score_map.get(wordle_score[2]), "overall": score_map.get(wordle_score[2]) + scores[player]["overall"]}
+
+  data_store[sender] = {"sender": sender, "summary": summary, "fromAddress": from_address}
+  data_store["scores"] = scores
+  # Return data for use in future steps
+  return {True}
